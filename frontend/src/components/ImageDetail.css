@@ -1,0 +1,271 @@
+.image-detail-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.image-detail-modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 1200px;
+  max-height: 90vh;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.2s ease;
+}
+
+.close-button:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.image-detail-content {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  height: 80vh;
+}
+
+.image-section {
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.detail-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.info-section {
+  padding: 2rem;
+  overflow-y: auto;
+  background: white;
+}
+
+.image-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.image-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+  word-break: break-word;
+}
+
+.upload-date {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.labels-section,
+.description-section,
+.metadata-section,
+.camera-settings {
+  margin-bottom: 2rem;
+}
+
+.labels-section h3,
+.description-section h3,
+.metadata-section h3,
+.camera-settings h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 1rem 0;
+}
+
+.labels-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.detail-label {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.ai-description {
+  color: #374151;
+  line-height: 1.6;
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+}
+
+.confidence-score {
+  display: inline-block;
+  background: #f0fdf4;
+  color: #166534;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.metadata-grid,
+.settings-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.metadata-item,
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.metadata-label,
+.setting-label {
+  font-weight: 500;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.metadata-value,
+.setting-value {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.875rem;
+}
+
+.loading-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  color: #64748b;
+}
+
+.loading-spinner-small {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 0.5rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  border: none;
+}
+
+.action-button.primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.action-button.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.action-button.secondary {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.action-button.secondary:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+@media (max-width: 1024px) {
+  .image-detail-content {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
+  }
+  
+  .info-section {
+    max-height: 40vh;
+  }
+}
+
+@media (max-width: 768px) {
+  .image-detail-overlay {
+    padding: 1rem;
+  }
+  
+  .image-detail-modal {
+    max-height: 95vh;
+  }
+  
+  .image-detail-content {
+    height: auto;
+    max-height: 85vh;
+  }
+  
+  .image-section {
+    padding: 1rem;
+  }
+  
+  .info-section {
+    padding: 1.5rem;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+}
