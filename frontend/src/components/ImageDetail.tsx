@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Photo } from '../App';
+import { Photo } from '../types/types';
 import './ImageDetail.css';
 
 interface ImageDetailProps {
@@ -14,7 +14,7 @@ const ImageDetail: React.FC<ImageDetailProps> = ({ photo, onClose }) => {
   useEffect(() => {
     // Mock detailed image information
     const mockDetails = {
-      detailed_description: `This is a beautiful ${photo.labels[0]} photograph captured with excellent composition and lighting. The image showcases ${photo.labels.slice(0, 3).join(', ')} with remarkable clarity and artistic vision. The photographer has skillfully balanced the elements to create a visually compelling scene that draws the viewer's attention and evokes a strong emotional response.`,
+      detailed_description: `This is a beautiful ${photo.tags[0].name} photograph captured with excellent composition and lighting. The image showcases ${photo.tags.map((tag) => tag.name).slice(0, 3).join(', ')} with remarkable clarity and artistic vision. The photographer has skillfully balanced the elements to create a visually compelling scene that draws the viewer's attention and evokes a strong emotional response.`,
       file_size: '2.4 MB',
       dimensions: '1920x1080',
       camera: 'Canon EOS R5',
@@ -64,7 +64,7 @@ const ImageDetail: React.FC<ImageDetailProps> = ({ photo, onClose }) => {
             <div className="image-header">
               <h2 className="image-title">{photo.filename}</h2>
               <p className="upload-date">
-                Uploaded {new Date(photo.upload_date).toLocaleDateString('en-US', {
+                Uploaded {new Date(photo.dateModified).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric'
@@ -75,9 +75,9 @@ const ImageDetail: React.FC<ImageDetailProps> = ({ photo, onClose }) => {
             <div className="labels-section">
               <h3>Labels</h3>
               <div className="labels-grid">
-                {photo.labels.map((label, index) => (
+                {photo.tags.map((tag, index) => (
                   <span key={index} className="detail-label">
-                    {label}
+                    {tag.name}
                   </span>
                 ))}
               </div>

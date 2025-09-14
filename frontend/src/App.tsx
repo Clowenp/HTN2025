@@ -1,24 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Gallery from './components/Gallery';
 import ImageDetail from './components/ImageDetail';
 import UploadModal from './components/UploadModal';
-
-export interface Photo {
-  image_id: string;
-  filename: string;
-  labels: string[];
-  thumbnail_url?: string;
-  upload_date: string;
-}
+import { searchImages, uploadImage } from './api/api';
+import { type Photo } from './types/types';
 
 function App() {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [photos] = useState<Photo[]>([]);
+  const [photos, setPhotos] = useState<Photo[]>([]);
 
   const handlePhotoClick = (photo: Photo) => {
     setSelectedPhoto(photo);
@@ -33,9 +27,28 @@ function App() {
     // TODO: Implement actual search API call
   };
 
+  useEffect(() => {
+    (async() => {
+      const imageData = await searchImages(searchQuery);
+      console.log(imageData);
+      setPhotos(imageData);
+    })();
+  }, [searchQuery])
+
   const handleUpload = (files: FileList) => {
     // TODO: Implement actual upload API call
     setShowUploadModal(false);
+    Array.from(files).forEach(file => {
+      uploadImage(file)
+        .then(response => {
+          // Optionally handle successful upload, e.g., update gallery
+          console.log('Uploaded:', response);
+        })
+        .catch(error => {
+        // Optionally handle upload error
+          console.error('Upload failed:', error);
+        });
+    });
   };
 
   return (
