@@ -17,14 +17,14 @@ const ImageDetail: React.FC<ImageDetailProps> = ({ photo, onClose }) => {
       detailed_description: `This is a beautiful ${photo.tags[0].name} photograph captured with excellent composition and lighting. The image showcases ${photo.tags.map((tag) => tag.name).slice(0, 3).join(', ')} with remarkable clarity and artistic vision. The photographer has skillfully balanced the elements to create a visually compelling scene that draws the viewer's attention and evokes a strong emotional response.`,
       file_size: '2.4 MB',
       dimensions: '1920x1080',
-      camera: 'Canon EOS R5',
+      camera: 'FaceTime HD camera',
       settings: {
         aperture: 'f/2.8',
         shutter: '1/250s',
         iso: 'ISO 400',
         focal_length: '85mm'
       },
-      location: 'San Francisco, CA',
+      location: 'Waterloo, ON',
       confidence_score: 0.92
     };
 
