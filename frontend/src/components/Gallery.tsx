@@ -6,11 +6,11 @@ interface GalleryProps {
   photos: Photo[];
   onPhotoClick: (photo: Photo) => void;
   searchQuery: string;
+  loading?: boolean;
 }
 
-const Gallery: React.FC<GalleryProps> = ({ photos, onPhotoClick, searchQuery }) => {
+const Gallery: React.FC<GalleryProps> = ({ photos, onPhotoClick, searchQuery, loading }) => {
   const [mockPhotos, setMockPhotos] = useState<Photo[]>([]);
-  const [loading, setLoading] = useState(false);
 
   // Filter photos based on search query
   const filteredPhotos = photos.filter((photo: Photo) => {
@@ -88,7 +88,7 @@ const Gallery: React.FC<GalleryProps> = ({ photos, onPhotoClick, searchQuery }) 
             <div className="photo-info">
               <p className="photo-filename">{photo.filename || "No name found"}</p>
               <p className="photo-date">
-                {new Date(parseFloat(photo.dateModified) * 1000).toLocaleDateString()}
+                {photo.dateModified}
               </p>
             </div>
           </div>

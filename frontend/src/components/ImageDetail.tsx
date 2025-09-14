@@ -54,7 +54,7 @@ const ImageDetail: React.FC<ImageDetailProps> = ({ photo, onClose }) => {
         <div className="image-detail-content">
           <div className="image-section">
             <img 
-              src={photo.thumbnail_url?.replace('w=300&h=300', 'w=800&h=600')} 
+              src={photo.s3Url} 
               alt={photo.filename}
               className="detail-image"
             />

@@ -13,6 +13,7 @@ function App() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const handlePhotoClick = (photo: Photo) => {
     setSelectedPhoto(photo);
@@ -29,9 +30,11 @@ function App() {
 
   useEffect(() => {
     (async() => {
+      setLoading(true);
       const imageData = await searchImages(searchQuery);
       console.log(imageData);
       setPhotos(imageData);
+      setLoading(false);
     })();
   }, [searchQuery])
 
@@ -68,6 +71,7 @@ function App() {
             photos={photos}
             onPhotoClick={handlePhotoClick}
             searchQuery={searchQuery}
+            loading={loading}
           />
         </main>
       </div>
