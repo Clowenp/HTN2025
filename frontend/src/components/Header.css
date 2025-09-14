@@ -63,6 +63,10 @@
   z-index: 1;
 }
 
+.search-icon:hover {
+  cursor: pointer;
+}
+
 .search-input {
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 3rem;
@@ -107,6 +111,10 @@
 .user-menu-button:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
+}
+
+.search-input-button {
+
 }
 
 @media (max-width: 768px) {

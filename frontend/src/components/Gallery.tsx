@@ -8,15 +8,43 @@ interface GalleryProps {
   searchQuery: string;
   deepSearch: boolean;
   loading?: boolean;
+  tags: string[];
 }
 
-const Gallery: React.FC<GalleryProps> = ({ photos, onPhotoClick, searchQuery, loading }) => {
+const Gallery: React.FC<GalleryProps> = ({ photos, onPhotoClick, searchQuery, loading, tags, deepSearch }) => {
   const [mockPhotos, setMockPhotos] = useState<Photo[]>([]);
   const [matches, setMatches] = useState<Record<string, string>>({});
 
   // Filter photos based on search query
   const filteredPhotos = useMemo(() => {
     const newMatches: Record<string, string> = {};
+    if (tags.length) {
+      const result = photos
+      .filter((photo: Photo) => {
+        if (!searchQuery) {
+          setMatches(newMatches);
+          return true;
+        }
+        console.log("Tags checking", tags);
+        return photo.tags.some((tag: Tag) => {
+          
+          console.log("Current name", tag.name.toLowerCase())
+          if (tags.some((testTag: any) => testTag.toLowerCase().includes(tag.name.toLowerCase()))) {
+            newMatches[photo.id] = tag.name.toLowerCase();
+            console.log("-- MATCHED --")
+            return true;
+          }
+          return false;
+        });
+      })
+      .map((photo: Photo) => ({ 
+        ...photo, 
+        tags: photo.tags.map((t: Tag) => ({ ...t, name: t.name.toLowerCase() }))
+      }))
+    setMatches(newMatches);
+    return result;
+
+    }
     const result = photos
       .filter((photo: Photo) => {
         if (!searchQuery) {
@@ -38,7 +66,7 @@ const Gallery: React.FC<GalleryProps> = ({ photos, onPhotoClick, searchQuery, lo
       }))
     setMatches(newMatches);
     return result;
-  }, [photos, searchQuery]);
+  }, [photos, searchQuery, tags]);
 
   if (loading) {
     return (
@@ -49,7 +77,7 @@ const Gallery: React.FC<GalleryProps> = ({ photos, onPhotoClick, searchQuery, lo
     );
   }
 
-  if (filteredPhotos.length === 0) {
+  if (filteredPhotos?.length === 0) {
     return (
       <div className="gallery-empty">
         <svg className="empty-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
@@ -106,7 +134,7 @@ const Gallery: React.FC<GalleryProps> = ({ photos, onPhotoClick, searchQuery, lo
       </div>
       
       <div className="photo-grid">
-        {filteredPhotos.map((photo) => (
+        {filteredPhotos?.map((photo) => (
           <div 
             key={photo.filename} 
             className="photo-card"

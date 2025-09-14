@@ -5,10 +5,11 @@ import Toggle from './Toggle';
 
 interface HeaderProps {
   onSearch: (query: string, deepSearch: boolean) => void;
+  onDeepSearch: (query: string) => void;
   searchQuery: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery }) => {
+const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery, onDeepSearch }) => {
   const [deepSearch, setDeepSearch] = useState(false);
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSearch(e.target.value, deepSearch);
@@ -34,10 +35,10 @@ const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery }) => {
         <div className="search-section">
           <form onSubmit={handleSearchSubmit} className="search-form">
             <div className="search-input-container">
-              <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-              </svg>
+                <svg onClick={() => onDeepSearch(searchQuery)} className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
               <input
                 type="text"
                 placeholder={`Search photos ${deepSearch ? 'using natural language' : 'by tags'}...`}

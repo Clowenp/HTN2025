@@ -1,4 +1,4 @@
-import { Photo } from "../types/types";
+import { Photo, Tag } from "../types/types";
 
 const API_BASE_URL = 'http://localhost:5000';
 
@@ -26,7 +26,10 @@ export async function uploadImage(file: File): Promise<any> {
 
 // Searches for images. If query is empty, returns all images.
 export async function searchImages(query: string): Promise<Photo[]> {
-  const response = await fetch(API_BASE_URL + '/api/search', {
+  const params = new URLSearchParams({
+    query
+  })
+  const response = await fetch(API_BASE_URL + `/api/search${query ? `?${params.toString()}` : ``}`, {
     method: 'GET'
   });
   if (!response.ok) {
@@ -41,4 +44,21 @@ export async function searchImages(query: string): Promise<Photo[]> {
       dateModified: new Date(parseFloat(photo.dateModified) * 1000).toLocaleDateString(),
     }
   })
+}
+
+export async function deepSearch(query: string): Promise<{ tag: string, confidence: string }[]> {
+  const params = new URLSearchParams({
+    query
+  })
+  const response = await fetch(API_BASE_URL + `/api/deepsearch${query ? `?${params.toString()}` : ``}`, {
+    method: 'GET'
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to upload image');
+  }
+
+  const res: any = await response.json();
+
+  return JSON.parse(res.results);
 }

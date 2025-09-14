@@ -5,14 +5,15 @@ import Sidebar from './components/Sidebar';
 import Gallery from './components/Gallery';
 import ImageDetail from './components/ImageDetail';
 import UploadModal from './components/UploadModal';
-import { searchImages, uploadImage } from './api/api';
+import { searchImages, uploadImage, deepSearch as deepSearchAPI } from './api/api';
 import { type Photo } from './types/types';
 
 function App() {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [deepSearch, setDeepSearch] = useState(true);
+  const [deepSearch, setDeepSearch] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,15 +31,33 @@ function App() {
     // TODO: Implement actual search API call
   };
 
+  const handleDeepSearch = async (query: string) => {
+    const tagData = await deepSearchAPI(query);
+    console.log("deep query: ", query);
+    console.log("imageData: ", tagData);
+    //setPhotos(imageData);
+    setLoading(false);
+    const tagList = tagData.map((tag) => tag.tag.toLowerCase());
+    setTags(tagList);
+  }
+
   useEffect(() => {
     (async() => {
-      setLoading(true);
-      const imageData = await searchImages(searchQuery);
-      console.log(imageData);
-      setPhotos(imageData);
-      setLoading(false);
+      console.log(deepSearch)
+      if (deepSearch) {
+        console.log("deep search ,ignored ");
+      }
+      else {
+        setTags([]);
+        setLoading(true);
+        const imageData = await searchImages('');
+        console.log(imageData);
+        setPhotos(imageData);
+        setLoading(false);
+      }
+      
     })();
-  }, [searchQuery])
+  }, [searchQuery, deepSearch])
 
   const handleUpload = (files: FileList) => {
     // TODO: Implement actual upload API call
@@ -60,6 +79,7 @@ function App() {
     <div className="app">
       <Header 
         onSearch={handleSearch}
+        onDeepSearch={handleDeepSearch}
         searchQuery={searchQuery}
       />
       
@@ -71,6 +91,7 @@ function App() {
         <main className="main-content">
           <Gallery 
             photos={photos}
+            tags={tags}
             onPhotoClick={handlePhotoClick}
             searchQuery={searchQuery}
             deepSearch={deepSearch}
