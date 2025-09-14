@@ -12,6 +12,7 @@ function App() {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [deepSearch, setDeepSearch] = useState(true);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,8 +24,9 @@ function App() {
     setSelectedPhoto(null);
   };
 
-  const handleSearch = (query: string) => {
+  const handleSearch = (query: string, deepSearch: boolean) => {
     setSearchQuery(query);
+    setDeepSearch(deepSearch);
     // TODO: Implement actual search API call
   };
 
@@ -71,6 +73,7 @@ function App() {
             photos={photos}
             onPhotoClick={handlePhotoClick}
             searchQuery={searchQuery}
+            deepSearch={deepSearch}
             loading={loading}
           />
         </main>

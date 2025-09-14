@@ -1,20 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Header.css';
+import Checkbox from './Checkbox';
+import Toggle from './Toggle';
 
 interface HeaderProps {
-  onSearch: (query: string) => void;
+  onSearch: (query: string, deepSearch: boolean) => void;
   searchQuery: string;
 }
 
 const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery }) => {
+  const [deepSearch, setDeepSearch] = useState(false);
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onSearch(e.target.value);
+    onSearch(e.target.value, deepSearch);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Search is handled by onChange for real-time search
   };
+  
+  const onToggle = () => {
+    setDeepSearch((prev: boolean) => !prev);
+  }
 
   return (
     <header className="header">
@@ -33,11 +40,13 @@ const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery }) => {
               </svg>
               <input
                 type="text"
-                placeholder="Search photos with natural language..."
+                placeholder={`Search photos ${deepSearch ? 'using natural language' : 'by tags'}...`}
                 value={searchQuery}
                 onChange={handleSearchChange}
                 className="search-input"
               />
+              <Toggle onToggle={onToggle} />
+              <p style={{ width: "200px", marginLeft: "1rem" }}>Use deep search</p>
             </div>
           </form>
         </div>
