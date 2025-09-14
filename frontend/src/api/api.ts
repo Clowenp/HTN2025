@@ -1,3 +1,5 @@
+import { Photo } from "../types/types";
+
 const API_BASE_URL = 'http://localhost:5000';
 
 /**
@@ -23,7 +25,7 @@ export async function uploadImage(file: File): Promise<any> {
 }
 
 // Searches for images. If query is empty, returns all images.
-export async function searchImages(query: string): Promise<any> {
+export async function searchImages(query: string): Promise<Photo[]> {
   const response = await fetch(API_BASE_URL + '/api/search', {
     method: 'GET'
   });
@@ -32,5 +34,11 @@ export async function searchImages(query: string): Promise<any> {
     throw new Error(error.error || 'Failed to upload image');
   }
 
-  return response.json();
+  const res: Photo[] = await response.json();
+  return res.map((photo: Photo) => {
+    return {
+      ...photo,
+      dateModified: new Date(parseFloat(photo.dateModified) * 1000).toLocaleDateString(),
+    }
+  })
 }

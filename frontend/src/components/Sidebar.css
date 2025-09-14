@@ -15,7 +15,7 @@
   height: 100%;
 }
 
-.upload-button {
+.open-upload-window-button {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
@@ -42,7 +42,7 @@
   transform: translateY(0);
 }
 
-.upload-icon {
+.upload-open-window-icon {
   transform: rotate(180deg);
 }
 
