@@ -1,7 +1,7 @@
 .header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 1rem 0;
+  padding: 0.1rem 0;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
@@ -21,7 +21,20 @@
 .logo-section {
   display: flex;
   flex-direction: column;
-  min-width: 200px;
+  min-width: auto;
+  flex-shrink: 0;
+}
+
+.logo-link {
+  display: block;
+  text-decoration: none;
+}
+
+.logo {
+  height: 6rem;
+  width: auto;
+  object-fit: contain;
+  cursor: pointer;
 }
 
 .app-title {
@@ -44,6 +57,8 @@
 .search-section {
   flex: 1;
   max-width: 600px;
+  margin-left: 1.5rem;
+  margin-right: auto;
 }
 
 .search-form {
