@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import './Gallery.css';
 import { Photo, Tag } from '../types/types';
 
@@ -6,19 +6,39 @@ interface GalleryProps {
   photos: Photo[];
   onPhotoClick: (photo: Photo) => void;
   searchQuery: string;
+  deepSearch: boolean;
   loading?: boolean;
 }
 
 const Gallery: React.FC<GalleryProps> = ({ photos, onPhotoClick, searchQuery, loading }) => {
   const [mockPhotos, setMockPhotos] = useState<Photo[]>([]);
+  const [matches, setMatches] = useState<Record<string, string>>({});
 
   // Filter photos based on search query
-  const filteredPhotos = photos.filter((photo: Photo) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return photo.tags.some((tag: Tag) => tag.name.toLowerCase().includes(query)) ||
-           photo.s3Url.toLowerCase().includes(query);
-  });
+  const filteredPhotos = useMemo(() => {
+    const newMatches: Record<string, string> = {};
+    const result = photos
+      .filter((photo: Photo) => {
+        if (!searchQuery) {
+          setMatches(newMatches);
+          return true;
+        }
+        const query = searchQuery.toLowerCase();
+        return photo.tags.some((tag: Tag) => {
+          if (tag.name.toLowerCase().includes(query)) {
+            newMatches[photo.id] = tag.name.toLowerCase();
+            return true;
+          }
+          return false;
+        });
+      })
+      .map((photo: Photo) => ({ 
+        ...photo, 
+        tags: photo.tags.map((t: Tag) => ({ ...t, name: t.name.toLowerCase() }))
+      }))
+    setMatches(newMatches);
+    return result;
+  }, [photos, searchQuery]);
 
   if (loading) {
     return (
@@ -48,6 +68,34 @@ const Gallery: React.FC<GalleryProps> = ({ photos, onPhotoClick, searchQuery, lo
     );
   }
 
+  const PhotoLabels = ({ photo } : { photo: Photo }) => (
+    <div className="photo-labels">
+      {photo.tags.slice(0, 3).map((tag, index) => (
+        <span key={index} className="label-tag">
+          {tag.name}
+        </span>
+      ))}
+      {photo.tags.length > 3 && (
+        <span className="label-tag more">
+          +{photo.tags.length - 3}
+        </span>
+      )}
+    </div>
+  );
+
+  const PhotoLabelsWithSearch = ({ photo }: { photo: Photo }) => (
+    <div className="photo-labels">
+      <span className="label-tag">
+          {matches[photo.id]}
+      </span>
+      {photo.tags.length > 1 && (
+        <span className="label-tag more">
+          +{photo.tags.length - 1}
+        </span>
+      )}
+    </div>
+  )
+
   return (
     <div className="gallery">
       <div className="gallery-header">
@@ -71,18 +119,7 @@ const Gallery: React.FC<GalleryProps> = ({ photos, onPhotoClick, searchQuery, lo
                 loading="lazy"
               />
               <div className="photo-overlay">
-                <div className="photo-labels">
-                  {photo.tags.slice(0, 3).map((tag, index) => (
-                    <span key={index} className="label-tag">
-                      {tag.name}
-                    </span>
-                  ))}
-                  {photo.tags.length > 3 && (
-                    <span className="label-tag more">
-                      +{photo.tags.length - 3}
-                    </span>
-                  )}
-                </div>
+                <PhotoLabels photo={photo}/>
               </div>
             </div>
             <div className="photo-info">
