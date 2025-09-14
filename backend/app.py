@@ -13,6 +13,7 @@ from PIL import Image
 from decimal import Decimal
 import time
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 
@@ -30,6 +31,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 S3_BUCKET = os.getenv('S3_BUCKET')
 REGION = os.getenv('AWS_REGION')
 USER_ID = os.getenv('TEST_USER_ID')
+ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
 
 # Initialize AWS DynamoDB client (will need AWS credentials configured)
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
@@ -244,6 +246,105 @@ def get_thumbnail(image_id):
             'thumbnail_url': f'/uploads/thumbnails/{image_id}_thumb.jpg'
         })
         
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/category/<category>', methods=['GET'])
+def category(category):
+    try:
+        response = tags_table.scan()
+        print("=======")
+        print("tags: ", response)
+        print("=======")
+        all_tags = set()
+        
+        for item in response.get('Items', []):
+            all_tags.add(item['name'])
+        
+        tags_string = ','.join(sorted(all_tags))
+        
+        prompt = f"""Please analyze the category "{category}" and select the top 3 most relevant tags from this list: [{tags_string}]
+Return ONLY a JSON array (no outer object) with the top matches in order of confidence. Use this exact format:
+
+[
+{{"tag": "tag_name", "confidence": 95}},
+{{"tag": "tag_name", "confidence": 87}},
+{{"tag": "tag_name", "confidence": 72}}
+]
+
+Rules:
+- Return maximum 3 tags, fewer if less than 3 are relevant
+- Confidence values: 0-100 (integers only)
+- Order by confidence (highest first)
+- Return empty array [] if no tags match"""
+
+        print("=======")
+        print("Prompt: ", prompt)
+        print("=======")
+        max_retries = 2
+        for attempt in range(max_retries):
+            try:
+                client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+                response = client.messages.create(
+                    model="claude-3-haiku-20240307",
+                    max_tokens=512,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+
+                print(response)
+                
+                llm_response = response.content[0].text.strip()
+                
+                print("=======")
+                print("LLM Response: ", llm_response)
+                print("=======")
+                
+                parsed_results = json.loads(llm_response)
+                
+                return jsonify({
+                    'success': True,
+                    'category': category,
+                    'results': parsed_results
+                })
+                
+            except json.JSONDecodeError as json_err:
+                if attempt == max_retries - 1:  # Last attempt failed
+                    return jsonify({
+                        'success': False,
+                        'error': 'Query is not working, please try a different query',
+                        'category': category
+                    }), 400
+                # Continue to next attempt
+                continue
+                
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+
+@app.route('/api/llm/<query>', methods=['GET'])
+def llm(query):
+    try:
+        # Send tags to Claude
+        client = anthropic.Anthropic(
+            api_key=os.getenv("ANTHROPIC_API_KEY")
+        )
+        response = client.messages.create(
+            model="claude-3-haiku-20240307",
+            max_tokens=1024,
+            messages=[
+                {"role": "user", "content": f"{query}"}
+            ]
+        )
+
+        print(response)
+        print(response.content[0].text)
+
+        return jsonify({
+            'success': True,
+            'query': query,
+            'results': response.content[0].text
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
