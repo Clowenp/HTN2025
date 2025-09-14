@@ -3,9 +3,10 @@ import './App.css';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Gallery from './components/Gallery';
+import TemplatePage from './components/TemplatePage';
 import ImageDetail from './components/ImageDetail';
 import UploadModal from './components/UploadModal';
-import { searchImages, uploadImage, deepSearch as deepSearchAPI } from './api/api';
+import { searchImages, uploadImage, deepSearch as deepSearchAPI, getTabs, addTab, type Tab } from './api/api';
 import { type Photo } from './types/types';
 
 function App() {
@@ -16,6 +17,9 @@ function App() {
   const [tags, setTags] = useState<string[]>([]);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('All Photos');
+  const [tabs, setTabs] = useState<Tab[]>([]);
+  const [tabsLoading, setTabsLoading] = useState(true);
 
   const handlePhotoClick = (photo: Photo) => {
     setSelectedPhoto(photo);
@@ -41,6 +45,22 @@ function App() {
     setTags(tagList);
   }
 
+  // Fetch tabs on component mount
+  useEffect(() => {
+    const fetchTabs = async () => {
+      try {
+        const tabsData = await getTabs();
+        setTabs(tabsData);
+        setTabsLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch tabs:', error);
+        setTabsLoading(false);
+      }
+    };
+
+    fetchTabs();
+  }, []);
+
   useEffect(() => {
     (async() => {
       console.log(deepSearch)
@@ -58,6 +78,25 @@ function App() {
       
     })();
   }, [searchQuery, deepSearch])
+
+  const handleTabChange = (tabName: string) => {
+    setActiveTab(tabName);
+    // Reset search when changing tabs
+    setSearchQuery('');
+    setDeepSearch(false);
+    setTags([]);
+  };
+
+  const handleAddTab = async (tabName: string) => {
+    try {
+      const newTab = await addTab(tabName);
+      setTabs(prevTabs => [...prevTabs, newTab]);
+      return newTab;
+    } catch (error) {
+      console.error('Failed to add tab:', error);
+      throw error;
+    }
+  };
 
   const handleUpload = async (files: FileList) => {
     setShowUploadModal(false);
@@ -91,10 +130,16 @@ function App() {
       <div className="app-content">
         <Sidebar 
           onUploadClick={() => setShowUploadModal(true)}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          tabs={tabs}
+          onAddTab={handleAddTab}
+          tabsLoading={tabsLoading}
         />
         
         <main className="main-content">
-          <Gallery 
+          <TemplatePage 
+            title={activeTab}
             photos={photos}
             tags={tags}
             onPhotoClick={handlePhotoClick}

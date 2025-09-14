@@ -62,3 +62,41 @@ export async function deepSearch(query: string): Promise<{ tag: string, confiden
 
   return JSON.parse(res.results);
 }
+
+export interface Tab {
+  user_id: string;
+  tab_id: string;
+  tab_name: string;
+}
+
+export async function getTabs(): Promise<Tab[]> {
+  const response = await fetch(API_BASE_URL + '/api/tabs', {
+    method: 'GET'
+  });
+  
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to fetch tabs');
+  }
+
+  const res = await response.json();
+  return res.tabs;
+}
+
+export async function addTab(tabName: string): Promise<Tab> {
+  const response = await fetch(API_BASE_URL + '/api/tabs', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ tab_name: tabName }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || 'Failed to add tab');
+  }
+
+  const res = await response.json();
+  return res.tab;
+}

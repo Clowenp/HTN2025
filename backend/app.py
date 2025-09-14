@@ -38,6 +38,7 @@ dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 images_table = dynamodb.Table('images')
 tags_table = dynamodb.Table('tags')
 users_table = dynamodb.Table('users')
+tabs_table = dynamodb.Table('tabs')
 s3 = boto3.client("s3", region_name='us-east-1')
 
 # Image recognition
@@ -364,6 +365,80 @@ Rules:
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
+
+@app.route('/api/tabs', methods=['GET'])
+def get_tabs():
+    """
+    Get all tabs for the current user
+    """
+    try:
+        # Query tabs table for all tabs (since we only have one user, get all)
+        response = tabs_table.scan()
+        tabs = response.get('Items', [])
+        print("Tabs: ", tabs)
+        
+        # Always ensure "All Photos" tab exists
+        all_photos_exists = any(tab.get('tab_name') == 'All Photos' for tab in tabs)
+        
+        if not all_photos_exists:
+            all_photos_tab = {'user_id': USER_ID, 'tab_id': 'all-photos', 'tab_name': 'All Photos'}
+            tabs_table.put_item(Item=all_photos_tab)
+            tabs.insert(0, all_photos_tab)  # Insert at beginning to make it first
+        
+        # If no other tabs exist, add default tabs
+        if len(tabs) <= 1:  # Only "All Photos" exists
+            default_tabs = [
+                {'user_id': USER_ID, 'tab_id': 'people', 'tab_name': 'People'},
+                {'user_id': USER_ID, 'tab_id': 'places', 'tab_name': 'Places'},
+                {'user_id': USER_ID, 'tab_id': 'things', 'tab_name': 'Things'}
+            ]
+            
+            # Insert default tabs into database
+            for tab in default_tabs:
+                tabs_table.put_item(Item=tab)
+                tabs.append(tab)
+        
+        # Sort tabs to ensure "All Photos" is always first
+        tabs.sort(key=lambda x: (x.get('tab_name') != 'All Photos', x.get('tab_name')))
+        
+        return jsonify({
+            'success': True,
+            'tabs': tabs
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/tabs', methods=['POST'])
+def add_tab():
+    """
+    Add a new tab for the current user
+    """
+    try:
+        data = request.get_json()
+        tab_name = data.get('tab_name')
+        
+        if not tab_name:
+            return jsonify({'error': 'tab_name is required'}), 400
+        
+        # Generate unique tab ID
+        tab_id = str(uuid.uuid4())
+        
+        new_tab = {
+            'user_id': USER_ID,
+            'tab_id': tab_id,
+            'tab_name': tab_name
+        }
+        
+        tabs_table.put_item(Item=new_tab)
+        
+        return jsonify({
+            'success': True,
+            'tab': new_tab
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/llm/<query>', methods=['GET'])
 def llm(query):

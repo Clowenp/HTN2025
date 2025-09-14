@@ -1,0 +1,29 @@
+.template-page {
+  width: 100%;
+  height: 100%;
+}
+
+.template-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 24px 0 0 24px;
+}
+
+.template-title {
+  margin: 0;
+  color: #333;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.template-content {
+  width: 100%;
+}
+
+/* Override Gallery header since we're using our own */
+.template-content .gallery .gallery-header {
+  display: none;
+}
