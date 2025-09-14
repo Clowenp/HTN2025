@@ -28,8 +28,9 @@ const Header: React.FC<HeaderProps> = ({ onSearch, searchQuery, onDeepSearch }) 
     <header className="header">
       <div className="header-content">
         <div className="logo-section">
-          <h1 className="app-title">PhotoMind</h1>
-          <span className="app-subtitle">AI-Powered Photo Management</span>
+          <a href="/" className="logo-link">
+            <img className="logo" src="/assets/images/logo.png" alt="PhotoMind" />
+          </a>
         </div>
         
         <div className="search-section">

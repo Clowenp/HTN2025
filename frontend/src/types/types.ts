@@ -12,3 +12,9 @@ export type Photo = {
     thumbnail_url?: string;
     filename?: string;
 };
+
+export type LLMResponse = {
+    success: boolean;
+    query: string;
+    results: string;
+}
