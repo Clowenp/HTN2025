@@ -15,35 +15,31 @@ const Gallery: React.FC<GalleryProps> = ({ photos, onPhotoClick, searchQuery, lo
   const [mockPhotos, setMockPhotos] = useState<Photo[]>([]);
   const [matches, setMatches] = useState<Record<string, string>>({});
 
-  // Filter photos based on search query
+  // Filter photos based on search query and tags
   const filteredPhotos = useMemo(() => {
     const newMatches: Record<string, string> = {};
+    
+    // If we have tags from deep search (tab filtering), filter by tags
     if (tags.length) {
+      console.log("Filtering by tags:", tags);
       const result = photos
-      .filter((photo: Photo) => {
-        if (!searchQuery) {
-          setMatches(newMatches);
-          return true;
-        }
-        console.log("Tags checking", tags);
-        return photo.tags.some((tag: Tag) => {
-          
-          console.log("Current name", tag.name.toLowerCase())
-          if (tags.some((testTag: any) => testTag.toLowerCase().includes(tag.name.toLowerCase()))) {
-            newMatches[photo.id] = tag.name.toLowerCase();
-            console.log("-- MATCHED --")
-            return true;
-          }
-          return false;
-        });
-      })
-      .map((photo: Photo) => ({ 
-        ...photo, 
-        tags: photo.tags.map((t: Tag) => ({ ...t, name: t.name.toLowerCase() }))
-      }))
-    setMatches(newMatches);
-    return result;
-
+        .filter((photo: Photo) => {
+          return photo.tags.some((tag: Tag) => {
+            console.log("Checking photo tag:", tag.name.toLowerCase());
+            if (tags.some((testTag: any) => testTag.toLowerCase().includes(tag.name.toLowerCase()))) {
+              newMatches[photo.id] = tag.name.toLowerCase();
+              console.log("-- MATCHED --");
+              return true;
+            }
+            return false;
+          });
+        })
+        .map((photo: Photo) => ({ 
+          ...photo, 
+          tags: photo.tags.map((t: Tag) => ({ ...t, name: t.name.toLowerCase() }))
+        }));
+      setMatches(newMatches);
+      return result;
     }
     const result = photos
       .filter((photo: Photo) => {

@@ -5,7 +5,7 @@ import { Tab } from '../api/api';
 interface SidebarProps {
   onUploadClick: () => void;
   activeTab: string;
-  onTabChange: (tabName: string) => void;
+  onTabChange: (tabName: string) => Promise<void>;
   tabs: Tab[];
   onAddTab: (tabName: string) => Promise<Tab>;
   tabsLoading: boolean;

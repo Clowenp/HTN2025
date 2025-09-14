@@ -59,6 +59,7 @@ export async function deepSearch(query: string): Promise<{ tag: string, confiden
   }
 
   const res: any = await response.json();
+  console.log("deep search result: ", res)
 
   return JSON.parse(res.results);
 }

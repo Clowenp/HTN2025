@@ -79,12 +79,41 @@ function App() {
     })();
   }, [searchQuery, deepSearch])
 
-  const handleTabChange = (tabName: string) => {
+  const handleTabChange = async (tabName: string) => {
     setActiveTab(tabName);
-    // Reset search when changing tabs
     setSearchQuery('');
-    setDeepSearch(false);
-    setTags([]);
+    
+    // If "All Photos" tab, show all photos without filtering
+    if (tabName === 'All Photos') {
+      setDeepSearch(false);
+      setTags([]);
+      setLoading(true);
+      try {
+        const imageData = await searchImages('');
+        setPhotos(imageData);
+      } catch (error) {
+        console.error('Failed to load all photos:', error);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // For all other tabs, perform deep search using tab name
+      setDeepSearch(true);
+      setLoading(true);
+      try {
+        const tagData = await deepSearchAPI(tabName);
+        console.log("Tab deep search for:", tabName);
+        console.log("Tag data:", tagData);
+        const tagList = tagData.map((tag) => tag.tag.toLowerCase());
+        setTags(tagList);
+        console.log("Tag list:", tagList);
+      } catch (error) {
+        console.error('Failed to perform tab deep search:', error);
+        setTags([]);
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   const handleAddTab = async (tabName: string) => {
