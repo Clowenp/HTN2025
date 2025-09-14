@@ -59,20 +59,25 @@ function App() {
     })();
   }, [searchQuery, deepSearch])
 
-  const handleUpload = (files: FileList) => {
-    // TODO: Implement actual upload API call
+  const handleUpload = async (files: FileList) => {
     setShowUploadModal(false);
-    Array.from(files).forEach(file => {
-      uploadImage(file)
-        .then(response => {
-          // Optionally handle successful upload, e.g., update gallery
-          console.log('Uploaded:', response);
-        })
-        .catch(error => {
-        // Optionally handle upload error
-          console.error('Upload failed:', error);
-        });
-    });
+    setLoading(true);
+    
+    try {
+      // Upload all files in parallel
+      const uploadPromises = Array.from(files).map(file => uploadImage(file));
+      const responses = await Promise.all(uploadPromises);
+      
+      console.log('All uploads completed:', responses);
+      
+      // Refetch gallery data after successful uploads
+      const imageData = await searchImages(searchQuery);
+      setPhotos(imageData);
+    } catch (error) {
+      console.error('Upload failed:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
