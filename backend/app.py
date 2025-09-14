@@ -5,10 +5,16 @@ import uuid
 from datetime import datetime
 import boto3
 from botocore.exceptions import ClientError
+from boto3.dynamodb.conditions import Key
 import anthropic
 import base64
 import io
 from PIL import Image
+from decimal import Decimal
+import time
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for React frontend
@@ -20,12 +26,35 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 # Ensure upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# Constants
+S3_BUCKET = os.getenv('S3_BUCKET')
+REGION = os.getenv('AWS_REGION')
+USER_ID = os.getenv('TEST_USER_ID')
+
 # Initialize AWS DynamoDB client (will need AWS credentials configured)
-# dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+images_table = dynamodb.Table('images')
+tags_table = dynamodb.Table('tags')
+users_table = dynamodb.Table('users')
+s3 = boto3.client("s3", region_name='us-east-1')
+
+# Image recognition
+rekognition = boto3.client('rekognition')
 # labels_table = dynamodb.Table('photo_labels')
 
 # Initialize Anthropic client (will need API key)
 # anthropic_client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+
+def get_all_images():
+    response = images_table.scan()
+    items = response.get('Items', [])
+    for item in items:
+        if "tags" in item:
+            for tag in item["tags"]:
+                if "confidence" in tag:
+                    tag["confidence"] = float(tag["confidence"])
+    items.sort(key=lambda x: float(x.get("dateModified", 0)), reverse=True)
+    return jsonify(items)
 
 @app.route('/', methods=['GET'])
 def health_check():
@@ -54,38 +83,52 @@ def upload_image():
         
         # Save the uploaded file
         filename = f"{image_id}_{file.filename}"
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+        s3.upload_fileobj(
+            file,
+            S3_BUCKET,
+            filename,
+            ExtraArgs={"ContentType": file.content_type}
+        )
+        file_url = f"https://{S3_BUCKET}.s3.{REGION}.amazonaws.com/{filename}"
+
+        # Run Rekognition: generate tags
+        response = rekognition.detect_labels(
+            Image={"S3Object": {"Bucket": S3_BUCKET, "Name": filename}},
+            MaxLabels=10,
+            MinConfidence=75
+        )
+
+        # Store tag and confidence info
+        tags = [{'name': label['Name'], 'confidence': Decimal(str(label['Confidence']))} for label in response['Labels']]
+
+        new_item = {
+            "id": image_id,
+            "s3Url": file_url,
+            "tags": tags,
+            "userId": USER_ID,
+            "dateModified": str(time.time()),
+            "filename": file.filename,
+        }
+
+        images_table.put_item(
+            Item=new_item
+        )
         
-        # TODO: Process image through Microsoft Omniparser
-        # TODO: Send processed image to Claude for label generation
-        # TODO: Store labels in DynamoDB
-        
-        # For now, return mock response
-        mock_labels = ['photo', 'outdoor', 'nature', 'landscape']
-        
-        return jsonify({
-            'success': True,
-            'image_id': image_id,
-            'filename': filename,
-            'labels': mock_labels,
-            'message': 'Image uploaded and processed successfully'
-        })
+        return jsonify(new_item)
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/search', methods=['POST'])
+@app.route('/api/search', methods=['GET'])
 def search_images():
     """
     Search images based on natural language query
     """
     try:
-        data = request.get_json()
-        query = data.get('query', '')
+        query = request.args.get('query')
         
         if not query:
-            return jsonify({'error': 'No search query provided'}), 400
+            return get_all_images()
         
         # TODO: Send query to Claude to extract relevant tags
         # TODO: Query DynamoDB labels table for matching image_ids
