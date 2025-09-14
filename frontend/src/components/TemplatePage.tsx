@@ -22,11 +22,11 @@ const TemplatePage: React.FC<TemplatePageProps> = ({ title, onPhotoClick, search
       }}>
         {title}
       </h2>
-      <Gallery 
+      {/* <Gallery 
         photos={mockPhotos}
         onPhotoClick={onPhotoClick}
         searchQuery={searchQuery}
-      />
+      /> */}
     </div>
   );
 };
