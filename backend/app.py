@@ -127,38 +127,81 @@ def search_images():
     Search images based on natural language query
     """
     try:
-        query = request.args.get('query')
+        return get_all_images()
+
         
-        if not query:
-            return get_all_images()
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/deepsearch', methods=['get'])
+def deep_search_api():
+    query = request.args.get("query")
+    try:
+        response = tags_table.scan()
+        print("=======")
+        print("tags: ", response)
+        print("=======")
+        all_tags = set()
         
-        # TODO: Send query to Claude to extract relevant tags
-        # TODO: Query DynamoDB labels table for matching image_ids
-        # TODO: Return image metadata for matching images
+        for item in response.get('Items', []):
+            all_tags.add(item['name'])
         
-        # For now, return mock response
-        mock_results = [
-            {
-                'image_id': 'mock-id-1',
-                'filename': 'sample1.jpg',
-                'labels': ['nature', 'outdoor', 'tree'],
-                'upload_date': datetime.now().isoformat()
-            },
-            {
-                'image_id': 'mock-id-2', 
-                'filename': 'sample2.jpg',
-                'labels': ['city', 'building', 'urban'],
-                'upload_date': datetime.now().isoformat()
-            }
-        ]
+        tags_string = ','.join(sorted(all_tags))
         
-        return jsonify({
-            'success': True,
-            'query': query,
-            'results': mock_results,
-            'count': len(mock_results)
-        })
-        
+        prompt = f"""Please analyze the user query:
+"{query}" 
+and select the top 3 most relevant tags from this list: [{tags_string}]
+Return ONLY a JSON array (no outer object) with the top matches in order of confidence. Use this exact format:
+
+[
+{{"tag": "tag_name", "confidence": 95}},
+{{"tag": "tag_name", "confidence": 87}},
+{{"tag": "tag_name", "confidence": 72}}
+]
+
+Rules:
+- Return maximum 3 tags, fewer if less than 3 are relevant
+- Confidence values: 0-100 (integers only)
+- Order by confidence (highest first)
+- Return empty array [] if no tags match"""
+
+        print("=======")
+        print("Prompt: ", prompt)
+        print("=======")
+        max_retries = 2
+        for attempt in range(max_retries):
+            try:
+                client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+                response = client.messages.create(
+                    model="claude-3-haiku-20240307",
+                    max_tokens=512,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+
+                print(response)
+                
+                llm_response = response.content[0].text.strip()
+                
+                print("=======")
+                print("LLM Response: ", llm_response)
+                print("=======")
+                
+                
+                return jsonify({
+                    'success': True,
+                    'results': llm_response
+                })
+                
+            except json.JSONDecodeError as json_err:
+                if attempt == max_retries - 1:  # Last attempt failed
+                    return jsonify({
+                        'success': False,
+                        'error': 'Query is not working, please try a different query',
+                        'category': category
+                    }), 400
+                # Continue to next attempt
+                continue
+                
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
